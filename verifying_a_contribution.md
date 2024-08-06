@@ -146,4 +146,4 @@ transmission-remote -n 'transmission:transmission' -a /mnt/media/ptau/downloads/
 A new contribution will require 3 new torrents:
 - The new *response* file
 - The new *challenge* file
-- The new pubkey *ptau* file. Add it to the _/history/_ folder, and create the torrent from the entire folder. 
+- The new *ptau* file with pubkey history. Add it to the _/history/_ folder, and create the torrent from the entire folder. 
