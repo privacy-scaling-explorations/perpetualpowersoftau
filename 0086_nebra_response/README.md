@@ -42,3 +42,5 @@ Done! new challenge file contains the new challenge file. The other files were l
 ```
 
 The new challenge file is available [here](https://pse-trusted-setup-ppot.s3.eu-central-1.amazonaws.com/challenge_0087)
+
+The public key history up to this contribution can be found [here](./pot28_0086_nopoints.ptau), in *ptau* format.
