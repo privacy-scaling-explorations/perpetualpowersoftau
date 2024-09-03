@@ -6,7 +6,7 @@ The Privacy & Scaling Explorations team is conducting phase 1 of a multi-party t
 
 As long as one party in the ceremony behaves honestly and is not compromised, the entire setup is trustworthy.
 
-To take part, please get in touch with EF's PSE team via Twitter DM (@glamperd) or Telegram (@glamperd).
+To take part, please get in touch with EF's PSE team via the [#ppot Discord channel](https://discord.com/channels/943612659163602974/1276171801268846686).
 
 ___
 
