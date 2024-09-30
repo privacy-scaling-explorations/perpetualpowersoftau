@@ -57,14 +57,70 @@ The `snarkjs powersoftau prepare phase2` command is used to take the file with t
 
 When dealing with the number of points we have, this command has several pitfalls. 
 
-*Memory* 
+### *Memory* 
+
 Use the Node.js options, mainly `--max-old-space-size` to prevent the process running out of memory.
 
 Create a swap file. Each section is processed in memory. You won't need the full 380gb to reside in memory at once, but you will need a sizable portion of that. 
 
-*Too many elements passed to Promise.all*
+See also [this](https://github.com/hermeznetwork/phase2ceremony_4/blob/main/VERIFY.md), which has another approach to memory issues.
+
+See also [this](https://hackmd.io/SUlyJfrNTDqBkSyGJ7E0cQ)
+
+
+### *Too many elements passed to Promise.all*
+
 The number of points we process exceeds a limit inherent in the underlying libraries on which `Promise.all` is based. 
 A fix is to install this branch of `fastfile`: 
 https://github.com/zkparty/fastfile/tree/limit-promises
+... which structures an array of Promise arrays so as to avoid the limit.
+
+------------
+Clone the snarkjs branch and the fastfile branch to folders on the disk where you'll porocess the data. Build both of them.
+
+Use the `npm link` command in the fastfile directory to make it the global module. Use `npm link fastfile` in the snarkjs folder to link to it instead of the downloaded package. Rebuild snarkjs.
+
+---------
+
+### *Split and Merge*
+
+To avoid a cycle of long-running attempts that may end in failure, we have a fork of snarkjs that allows the process to be broken up into shorter-running chunks. 
+
+The fork is [here](https://github.com/glamperd/snarkjs/tree/run-prepare). Use the `run-prepare` branch. 
+
+This approach breaks the job into segments, corresponding to the sections in the ptau file, namely:
+
+| Section | Section No. | Prepared Section No. |
+|---------|--------|------------|
+| Tau.g1 | 2 | 12 |
+| Tau.g2 | 3 | 13 |
+| AlphaTau.g1 | 4 | 14 |
+| BetaTau.g1 | 5 | 15 |
+
+We can further divide the job within each section into each level of powers of 2. Each section has 2^28 powers except that Tau.g1 has almost 2^29 and BetaTau.g2 has only 1 point.
+
+Each increment in the exponent has twice as many points. So, for example, the 2^27 exponent has as many points as 1 to 26. The command line has arguments to select the exponent range to process. The job can be chunked into chunks of a size of your choice.
+
+After processing, the generated data can be merged in to a final prepared file. This must be done in order sequence with respect to the exponents. Snarkjs will only allow merging into a single final file, i.e. the chunks can't be merged together, then merged again to the final file.
+
+Example commands:
+```
+export NODE_OPTIONS=--max-old-space-size=480800
+./build/cli.cjs powersoftau prepare section ppot_0080_beacon.ptau ppot_0080 4 0 28 -v
+```
+The above command processes section 4 (AlphaTau.g1), and powers 0 to 28, which in this case is the whole section. The generated file will be named starting with `ppot_0080`. The newly generated section (14 in this case) and exponent range (0 to 28) will be automatically appended.
+
+```
+ snarkjs]$ ./build/cli.cjs powersoftau prepare merge ppot_0080_prepared.ptau ppot_0080_s13_27_27.ptau ppot_0080_s13a.ptau -v
+```
+The above command will merge a prepared chunk (ppot_0080_s13_27_27.ptau) into a partial final file (ppot_0080_s13_27_27.ptau) to create a new partial final file (ppot_0080_s13a.ptau).
+
+The end result once all chunks have been processed and merged is a full prepared file, just as if the `powersoftau prepare phase2` command had been run. The intermediate files can be discarded. 
+
+### Wrapping up
+
+The final step is to truncate the prepared file. Use the `snarkjs powersoftau truncate` command. You'll then have a full set of files to publish, 1 for each exponent up to 28.
+
+
 
 
